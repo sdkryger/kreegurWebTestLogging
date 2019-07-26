@@ -93,11 +93,18 @@ class MyDB extends SQLite3
             $response->message = "Not a recognized action";
         }
     } else { // no specified action so responsd with all tasks
-        $sql = <<<EOF
-            SELECT * from tags where deleted is null;
+        if(isset($_REQUEST['taskId'])){
+            $taskId = (int)$_REQUEST['taskId'];
+            $stmt = $db->prepare("select * from tags where taskId = :taskId");
+            $stmt->bindValue(':taskId', $taskId, SQLITE3_INTEGER);
+            $results = $stmt->execute();
+        } else {
+            $sql = <<<EOF
+                SELECT * from tags where deleted is null;
 EOF;
-
-        $results = $db->query($sql);
+        
+            $results = $db->query($sql);
+        }
         //echo "is php working??<br>";
         $tags = array();
         while($row = $results->fetchArray()){

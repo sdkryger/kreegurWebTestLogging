@@ -171,6 +171,12 @@ $dbPath = $_SESSION['dbPath'];
                     taskId = parseInt(id);
                     $("#dialogDeleteTask").dialog('open');
                 });
+                $('body').on('click','.configureTask',function(){
+                    var id = $(this).attr('id').substr(9);
+                    var url = 'taskConfigure.php?id='+id;
+                    //alert("Should configure task with id of: "+id+' and url of: '+url);
+                    window.open(url, '_self');
+                });
             });
             function updateTasks(){
                 $.post(
@@ -187,7 +193,8 @@ $dbPath = $_SESSION['dbPath'];
                             else
                                 html += '<td>'+value.endTime.substr(0,19)+'</td>';
                             html += '<td><button class="myButtons finishTask" id="finish'+value.id+'">Finish</button>';
-                            html += '<button class="myButtons viewTask" id="view'+value.id+'">View</button>';
+                            html += '<button class="myButtons viewTask" id="view'+value.id+'">View data</button>';
+                            html += '<button class="myButtons configureTask" id="configure'+value.id+'">Configure</button>';
                             html += '<button class="myButtons deleteTask" id="delete'+value.id+'">Delete</button></td>';
                             html += '</tr>';
                             $("#tbodyTasks").append(html);
