@@ -21,6 +21,12 @@ $dbPath = $_SESSION['dbPath'];
             body {
                 font-family:arial;
             }
+            .myButtons{
+                min-width:100px;
+            }
+            td {
+                padding:5px;
+            }
         </style>
     </head>
     <body>
@@ -47,31 +53,95 @@ $dbPath = $_SESSION['dbPath'];
             <tbody id="tbodyTasks">
             </tbody>
         </table>
+        <div id="dialogNewTask" title="New task" style="display:none;">
+            Description<br>
+            <input type="text" id="inputDescription">
+            <div id="divEnterDescription" style="color:red;display:none;">
+                Must enter a description
+                
+            </div>
+        </div>
         <button class="myButtons someOtherClass" id="buttonNewTask">New task</button>
         <script src = "js/jquery-3.3.1.min.js"></script>
 		<script src = "js/jquery-ui.min.js"></script>
         <script>
+            var taskId = -1; //current task id (-1 is not set)
             $(document).ready(function(){
                 updateTasks();
                 $(".myButtons").button();
-                
+                $("#dialogNewTask").dialog({
+                    modal:true,
+                    autoOpen:false,
+                    buttons: {
+                        Okay: function(){
+                            var descr = $("#inputDescription").val();
+                            if(descr.length == 0)
+                                $("#divEnterDescription").show();
+                            else{
+                                //alert("will try to add new task with description of: "+descr);
+                                $(this).dialog('close');
+                                $.post(
+                                    'api/tasks.php',
+                                    {
+                                        action: 'newTask',
+                                        description: descr
+                                    },
+                                    function(data){
+                                        updateTasks();
+                                        if(data.error)
+                                            alert(data.message);
+                                    },
+                                    'json'
+                                );
+                            }   
+                        },
+                        Cancel: function(){
+                            $(this).dialog('close');
+                        }
+                    },
+                    open: function(event, ui){
+                        $("#inputDescription").val('');
+                        $("#divEnterDescription").hide();
+                    }
+                });
+                $("#buttonNewTask").click(function(){
+                    $("#dialogNewTask").dialog('open');
+                });
+                $('body').on('click','.finishTask',function(){
+                    var id = $(this).attr('id').substr(6);
+                    alert("Should finish task with id of: "+id);
+                    $.post(
+                        'api/tasks.php',
+                        {
+                            action: 'endTask',
+                            id: id
+                        },
+                        function(data){
+                            updateTasks();
+                            if(data.error)
+                                alert(data.message);
+                        },
+                        'json'
+                    );
+                });
             });
             function updateTasks(){
                 $.post(
                     'api/tasks.php',
                     function(data){
-                        alert(JSON.stringify(data));
+                        //alert(JSON.stringify(data));
                         $("#tbodyTasks").empty();
                         $.each(data.tasks,function(index, value){
                             var html = '<tr><td>'+value.id+'</td>';
                             html += '<td>'+value.description+'</td>';
-                            html += '<td>'+value.startTime+'</td>';
+                            html += '<td>'+value.startTime.substr(0,19)+'</td>';
                             if(value.endTime == null)
                                 html += '<td>On-going</td>';
                             else
-                                html += '<td>'+value.endTime+'</td>';
+                                html += '<td>'+value.endTime.substr(0,19)+'</td>';
                             html += '<td><button class="myButtons finishTask" id="finish'+value.id+'">Finish</button>';
-                            html += '<button class="myButtons viewTask" id="view'+value.id+'">View</button></td>';
+                            html += '<button class="myButtons viewTask" id="view'+value.id+'">View</button>';
+                            html += '<button class="myButtons deleteTask" id="delete'+value.id+'">Delete</button></td>';
                             html += '</tr>';
                             $("#tbodyTasks").append(html);
                             $(".myButtons").button();
