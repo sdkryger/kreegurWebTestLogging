@@ -61,6 +61,13 @@ $dbPath = $_SESSION['dbPath'];
                 
             </div>
         </div>
+        <div id="dialogDeleteTask" title="Delete task" style="display:none;">
+            Delete task?
+            <div id="divDeleteMessage" style="color:red;display:none;">
+                Error: no task selected
+                
+            </div>
+        </div>
         <button class="myButtons someOtherClass" id="buttonNewTask">New task</button>
         <script src = "js/jquery-3.3.1.min.js"></script>
 		<script src = "js/jquery-ui.min.js"></script>
@@ -104,12 +111,46 @@ $dbPath = $_SESSION['dbPath'];
                         $("#divEnterDescription").hide();
                     }
                 });
+                $("#dialogDeleteTask").dialog({
+                    modal:true,
+                    autoOpen:false,
+                    buttons: {
+                        Okay: function(){
+                            if(taskId == -1)
+                                $("#divDeleteMessage").show();
+                            else{
+                                //alert("will try to add new task with description of: "+descr);
+                                $(this).dialog('close');
+                                $.post(
+                                    'api/tasks.php',
+                                    {
+                                        action: 'deleteTask',
+                                        id: taskId
+                                    },
+                                    function(data){
+                                        updateTasks();
+                                        if(data.error)
+                                            alert(data.message);
+                                        taskId = -1;
+                                    },
+                                    'json'
+                                );
+                            }   
+                        },
+                        Cancel: function(){
+                            $(this).dialog('close');
+                        }
+                    },
+                    open: function(event, ui){
+                        $("#divDeleteMessage").hide();
+                    }
+                });
                 $("#buttonNewTask").click(function(){
                     $("#dialogNewTask").dialog('open');
                 });
                 $('body').on('click','.finishTask',function(){
                     var id = $(this).attr('id').substr(6);
-                    alert("Should finish task with id of: "+id);
+                    //alert("Should finish task with id of: "+id);
                     $.post(
                         'api/tasks.php',
                         {
@@ -123,6 +164,12 @@ $dbPath = $_SESSION['dbPath'];
                         },
                         'json'
                     );
+                });
+                $('body').on('click','.deleteTask',function(){
+                    var id = $(this).attr('id').substr(6);
+                    //alert("Should delete task with id of: "+id);
+                    taskId = parseInt(id);
+                    $("#dialogDeleteTask").dialog('open');
                 });
             });
             function updateTasks(){
