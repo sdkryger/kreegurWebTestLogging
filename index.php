@@ -47,11 +47,14 @@ $dbPath = $_SESSION['dbPath'];
             <tbody id="tbodyTasks">
             </tbody>
         </table>
+        <button class="myButtons someOtherClass" id="buttonNewTask">New task</button>
         <script src = "js/jquery-3.3.1.min.js"></script>
 		<script src = "js/jquery-ui.min.js"></script>
         <script>
             $(document).ready(function(){
                 updateTasks();
+                $(".myButtons").button();
+                
             });
             function updateTasks(){
                 $.post(
@@ -62,8 +65,16 @@ $dbPath = $_SESSION['dbPath'];
                         $.each(data.tasks,function(index, value){
                             var html = '<tr><td>'+value.id+'</td>';
                             html += '<td>'+value.description+'</td>';
+                            html += '<td>'+value.startTime+'</td>';
+                            if(value.endTime == null)
+                                html += '<td>On-going</td>';
+                            else
+                                html += '<td>'+value.endTime+'</td>';
+                            html += '<td><button class="myButtons finishTask" id="finish'+value.id+'">Finish</button>';
+                            html += '<button class="myButtons viewTask" id="view'+value.id+'">View</button></td>';
                             html += '</tr>';
                             $("#tbodyTasks").append(html);
+                            $(".myButtons").button();
                         });
                     },
                     'json'
